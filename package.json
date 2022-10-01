@@ -1,0 +1,22 @@
+{
+  "name": "panini",
+  "version": "1.0.0",
+  "description": "Bot to trade, get and open Panini Fifa Qatar Album Stickers",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tribakzero/panini.git"
+  },
+  "bugs": {
+    "url": "https://github.com/tribakzero/panini/issues"
+  },
+  "homepage": "https://github.com/tribakzero/panini#readme",
+  "dependencies": {
+    "dotenv": "^16.0.3",
+    "node-cron": "^3.0.2"
+  },
+  "type": "module"
+}
