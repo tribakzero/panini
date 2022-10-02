@@ -67,6 +67,18 @@ const getDailyCokeScanPacks = async () => {
   return response
 }
 
+const openPack = async () => {
+  const request = await fetch("https://paninistickeralbum.fifa.com/api/open_pack.json", {
+    headers,
+    "body": "json=%7b%7d&locale=en",
+    "method": "POST"
+  })
+
+  const response = request.json()
+
+  return response
+}
+
 const init = async () => {
 
   const dailyPacksStatus = await getDailyPacksStatus()
@@ -99,6 +111,14 @@ const dailyCronScheduler = (cronString) => {
 
     const dailyCokeScanPacks = await getDailyCokeScanPacks()
     console.log('Asked for daily coke scan packs, response: ', dailyCokeScanPacks)
+
+    let openPackIntent = {}
+
+    do {
+      openPackIntent = await openPack();
+      console.log(openPackIntent)
+    } while (!openPackIntent[0].wait);
+
   })
 }
 

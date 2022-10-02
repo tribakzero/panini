@@ -4,9 +4,9 @@
 ### Features:
 - Get daily sticker packs
 - "Scan" Panini and Coca-Cola products
+- Open 4 packs a day
 
 ### TODO:
-- Open 4 packs a day
 - Check for trades and verify them
 - Chat teams
 
