@@ -43,6 +43,30 @@ const getDailyPacks = async () => {
   return response
 }
 
+const getDailyPaniniScanPacks = async () => {
+  const request = await fetch("https://paninistickeralbum.fifa.com/api/receive_daily_packs.json", {
+    headers,
+    "body": "json=%7b%22object_uid%22%3a%22panini_covers-hard-FIL-LATAM%22%2c%22context%22%3a%22panini_covers%22%7d&locale=en",
+    "method": "POST"
+  })
+
+  const response = request.json()
+
+  return response
+}
+
+const getDailyCokeScanPacks = async () => {
+  const request = await fetch("https://paninistickeralbum.fifa.com/api/receive_daily_packs.json", {
+    headers,
+    "body": "json=%7b%22object_uid%22%3a%22coke-500ml-pet-promo%22%2c%22context%22%3a%22coke_products%22%7d&locale=en",
+    "method": "POST"
+  })
+
+  const response = request.json()
+
+  return response
+}
+
 const init = async () => {
 
   const dailyPacksStatus = await getDailyPacksStatus()
@@ -69,6 +93,12 @@ const dailyCronScheduler = (cronString) => {
   nodeCron.schedule(cronString, async () => {
     const dailyPacks = await getDailyPacks()
     console.log('Asked for daily packs, response: ', dailyPacks)
+
+    const dailyPaniniScanPacks = await getDailyPaniniScanPacks()
+    console.log('Asked for daily panini scan packs, response: ', dailyPaniniScanPacks)
+
+    const dailyCokeScanPacks = await getDailyCokeScanPacks()
+    console.log('Asked for daily coke scan packs, response: ', dailyCokeScanPacks)
   })
 }
 
