@@ -79,6 +79,30 @@ const openPack = async () => {
   return response
 }
 
+const pollSwaps = async () => {
+  const request = await fetch("https://paninistickeralbum.fifa.com/api/poll.json", {
+    headers,
+    "body": "json=%7b%7d&locale=en",
+    "method": "POST"
+  })
+
+  const response = request.json()
+
+  return response
+}
+
+const executeSwap = async (swapId) => {
+  const request = await fetch("https://paninistickeralbum.fifa.com/api/execute_received_swap.json", {
+    headers,
+    "body": `json=%7b%22id%22%3a%22${swapId}%22%7d&locale=en`,
+    "method": "POST"
+  })
+
+  const response = request.json()
+
+  return response
+}
+
 const init = async () => {
 
   const dailyPacksStatus = await getDailyPacksStatus()
@@ -122,12 +146,28 @@ const dailyCronScheduler = (cronString) => {
   })
 }
 
+const swapCronScheduler = () => {
+  nodeCron.schedule('*/5 * * * *', async () => {
+    const pollResponse = await pollSwaps()
+
+    const openSwaps = pollResponse.slice(0,-1)
+
+    openSwaps.forEach(swap => {
+      executeSwap(swap.id).then(response => {
+        console.log('Asked for swap execution on id: ', swap.id, ', response: ', response)
+      })
+    })
+  })
+}
+
 const main = async () => {
   console.log('Starting Panini Bot')
 
   const cronString = await init()
 
   dailyCronScheduler(cronString)
+
+  swapCronScheduler()
 }
 
 main()

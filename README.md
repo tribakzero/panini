@@ -5,9 +5,9 @@
 - Get daily sticker packs
 - "Scan" Panini and Coca-Cola products
 - Open 4 packs a day
+- Check for open swaps and execute them
 
 ### TODO:
-- Check for trades and verify them
 - Chat teams
 
 ### Issues:
