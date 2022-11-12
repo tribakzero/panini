@@ -133,9 +133,6 @@ const init = async () => {
   initData = await getInitData()
   console.log(`Got ${initData[1].stacks.album.length} of ${config.stickers.length}`)
 
-  const swap = await executeSwap("1795049466501844655")
-  console.log(swap)
-
   if(SHOULD_SWAP_REPEATED_STICKERS) {
     const swappableStickers = initData[1].stacks.temp.filter(stickerId => {
       const repeatedSticker = isRepeated(stickerId);
