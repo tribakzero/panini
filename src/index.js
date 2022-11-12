@@ -34,10 +34,7 @@ const getConfigData = async () => {
 const getInitData = async () => {
   const request = await fetch("https://paninistickeralbum.fifa.com/api/init.json", {
     headers,
-    body: {
-      json: {},
-      locale: "en"
-    },
+    body: "json=%7b%7d&locale=en",
     method: "POST"
   })
 
@@ -47,10 +44,7 @@ const getInitData = async () => {
 const getDailyPacksStatus = async () => {
   const request = await fetch("https://paninistickeralbum.fifa.com/api/daily_packs_status.json", {
     headers,
-    body: {
-      json: {},
-      locale: "en"
-    },
+    body: "json=%7b%7d&locale=en",
     method: "POST"
   })
 
@@ -60,10 +54,7 @@ const getDailyPacksStatus = async () => {
 const getDailyPacks = async () => {
   const request = await fetch("https://paninistickeralbum.fifa.com/api/receive_daily_packs.json", {
     headers,
-    body: {
-      json: {},
-      locale: "en"
-    },
+    body: "json=%7b%7d&locale=en",
     method: "POST"
   })
 
@@ -73,13 +64,7 @@ const getDailyPacks = async () => {
 const getDailyPaniniScanPacks = async () => {
   const request = await fetch("https://paninistickeralbum.fifa.com/api/receive_daily_packs.json", {
     headers,
-    body: {
-      json: {
-        object_uid: "panini_covers-hard-FIL-LATAM",
-        context: "panini_covers"
-      },
-      locale: "en"
-    },
+    body: "json=%7b%22object_uid%22%3a%22panini_covers-hard-FIL-LATAM%22%2c%22context%22%3a%22panini_covers%22%7d&locale=en",
     method: "POST"
   })
 
@@ -89,13 +74,7 @@ const getDailyPaniniScanPacks = async () => {
 const getDailyCokeScanPacks = async () => {
   const request = await fetch("https://paninistickeralbum.fifa.com/api/receive_daily_packs.json", {
     headers,
-    body: {
-      json: {
-        object_uid: "coke-500ml-pet-promo",
-        context: "coke_products"
-      },
-      locale: "en"
-    },
+    body: "json=%7b%22object_uid%22%3a%22coke-500ml-pet-promo%22%2c%22context%22%3a%22coke_products%22%7d&locale=en",
     method: "POST"
   })
 
@@ -105,10 +84,7 @@ const getDailyCokeScanPacks = async () => {
 const openPack = async () => {
   const request = await fetch("https://paninistickeralbum.fifa.com/api/open_pack.json", {
     headers,
-    body: {
-      json: {},
-      locale: "en"
-    },
+    body: "json=%7b%7d&locale=en",
     method: "POST"
   })
 
@@ -118,10 +94,7 @@ const openPack = async () => {
 const pollSwaps = async () => {
   const request = await fetch("https://paninistickeralbum.fifa.com/api/poll.json", {
     headers,
-    body: {
-      json: {},
-      locale: "en"
-    },
+    body: "json=%7b%7d&locale=en",
     method: "POST"
   })
 
@@ -131,10 +104,7 @@ const pollSwaps = async () => {
 const executeSwap = async (id) => {
   const request = await fetch("https://paninistickeralbum.fifa.com/api/execute_received_swap.json", {
     headers,
-    body: {
-      json: { id },
-      locale: "en"
-    },
+    "body": `json=%7b%22id%22%3a%22${id}%22%7d&locale=en`,
     method: "POST"
   })
 
@@ -144,15 +114,7 @@ const executeSwap = async (id) => {
 const moveStickers = async (stickerIds) => {
   const request = await fetch("https://paninistickeralbum.fifa.com/api/move_stickers.json", {
     headers,
-    body: {
-      json: {
-        from: "temp",
-        to: {
-          swap: JSON.stringify(stickerIds)
-        }
-      },
-      locale: "en"
-    },
+    body: `json=%7b%22from%22%3a%22temp%22%2c%22to%22%3a%7b%22swap%22%3a${JSON.stringify(stickerIds)}%7d%7d&locale=en`,
     method: "POST"
   })
 
@@ -169,6 +131,11 @@ const init = async () => {
   console.log(config.stickers.length)
 
   initData = await getInitData()
+  console.log(`Got ${initData[1].stacks.album.length} of ${config.stickers.length}`)
+
+  const swap = await executeSwap("1795049466501844655")
+  console.log(swap)
+
   if(SHOULD_SWAP_REPEATED_STICKERS) {
     const swappableStickers = initData[1].stacks.temp.filter(stickerId => {
       const repeatedSticker = isRepeated(stickerId);
@@ -227,9 +194,8 @@ const swapCronScheduler = () => {
     const openSwaps = pollResponse.slice(0,-1)
 
     const swappedStickers = await openSwaps.map(async swap => {
-      await executeSwap(swap.id).then(response => {
-        console.log(`Asked for swap execution on id: ${swap.id}, response: ${response}`)
-      })
+      const response = await executeSwap(swap.id)
+      console.log(`Asked for swap execution on id: ${swap.id}, response: ${JSON.stringify(response)}`)
 
       return swap.id
     })
