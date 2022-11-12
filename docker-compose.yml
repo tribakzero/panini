@@ -6,5 +6,5 @@ services:
     image: node:18-alpine
     restart: unless-stopped
     volumes:
-      - ${DOCKER_PATH}/:/app
+      - ./:/app
     entrypoint: sh -c "cd app && npm install && npm start"

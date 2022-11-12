@@ -3,6 +3,8 @@ import nodeCron from 'node-cron'
 
 dotenv.config()
 
+const SHOULD_SWAP_REPEATED_STICKERS = process.env.SWAP_REPEATED_STICKERS === 'true'
+
 const headers = {
   "accept": "*/*",
   "accept-language": "en-MX,en;q=0.9,es-MX;q=0.8,es;q=0.7,en-US;q=0.6",
@@ -25,117 +27,136 @@ const getConfigData = async () => {
 
   const configUrl = manifest["config/config.json"]
   const configRequest = await fetch(`https://paninistickeralbum.fifa.com/assets/${configUrl}`)
-  const config = await configRequest.json()
 
-  return config
+  return configRequest.json()
 }
 
 const getInitData = async () => {
   const request = await fetch("https://paninistickeralbum.fifa.com/api/init.json", {
     headers,
-    "body": "json=%7b%7d&locale=en",
-    "method": "POST"
+    body: {
+      json: {},
+      locale: "en"
+    },
+    method: "POST"
   })
 
-  const response = request.json()
-
-  return response
+  return request.json()
 }
 
 const getDailyPacksStatus = async () => {
   const request = await fetch("https://paninistickeralbum.fifa.com/api/daily_packs_status.json", {
     headers,
-    "body": "json=%7b%7d&locale=en",
-    "method": "POST"
+    body: {
+      json: {},
+      locale: "en"
+    },
+    method: "POST"
   })
 
-  const response = request.json()
-
-  return response
+  return request.json()
 }
 
 const getDailyPacks = async () => {
   const request = await fetch("https://paninistickeralbum.fifa.com/api/receive_daily_packs.json", {
     headers,
-    "body": "json=%7b%7d&locale=en",
-    "method": "POST"
+    body: {
+      json: {},
+      locale: "en"
+    },
+    method: "POST"
   })
 
-  const response = request.json()
-
-  return response
+  return request.json()
 }
 
 const getDailyPaniniScanPacks = async () => {
   const request = await fetch("https://paninistickeralbum.fifa.com/api/receive_daily_packs.json", {
     headers,
-    "body": "json=%7b%22object_uid%22%3a%22panini_covers-hard-FIL-LATAM%22%2c%22context%22%3a%22panini_covers%22%7d&locale=en",
-    "method": "POST"
+    body: {
+      json: {
+        object_uid: "panini_covers-hard-FIL-LATAM",
+        context: "panini_covers"
+      },
+      locale: "en"
+    },
+    method: "POST"
   })
 
-  const response = request.json()
-
-  return response
+  return request.json()
 }
 
 const getDailyCokeScanPacks = async () => {
   const request = await fetch("https://paninistickeralbum.fifa.com/api/receive_daily_packs.json", {
     headers,
-    "body": "json=%7b%22object_uid%22%3a%22coke-500ml-pet-promo%22%2c%22context%22%3a%22coke_products%22%7d&locale=en",
-    "method": "POST"
+    body: {
+      json: {
+        object_uid: "coke-500ml-pet-promo",
+        context: "coke_products"
+      },
+      locale: "en"
+    },
+    method: "POST"
   })
 
-  const response = request.json()
-
-  return response
+  return request.json()
 }
 
 const openPack = async () => {
   const request = await fetch("https://paninistickeralbum.fifa.com/api/open_pack.json", {
     headers,
-    "body": "json=%7b%7d&locale=en",
-    "method": "POST"
+    body: {
+      json: {},
+      locale: "en"
+    },
+    method: "POST"
   })
 
-  const response = request.json()
-
-  return response
+  return request.json()
 }
 
 const pollSwaps = async () => {
   const request = await fetch("https://paninistickeralbum.fifa.com/api/poll.json", {
     headers,
-    "body": "json=%7b%7d&locale=en",
-    "method": "POST"
+    body: {
+      json: {},
+      locale: "en"
+    },
+    method: "POST"
   })
 
-  const response = request.json()
-
-  return response
+  return request.json()
 }
 
-const executeSwap = async (swapId) => {
+const executeSwap = async (id) => {
   const request = await fetch("https://paninistickeralbum.fifa.com/api/execute_received_swap.json", {
     headers,
-    "body": `json=%7b%22id%22%3a%22${swapId}%22%7d&locale=en`,
-    "method": "POST"
+    body: {
+      json: { id },
+      locale: "en"
+    },
+    method: "POST"
   })
 
-  const response = request.json()
-
-  return response
+  return request.json()
 }
 
 const moveStickers = async (stickerIds) => {
   const request = await fetch("https://paninistickeralbum.fifa.com/api/move_stickers.json", {
     headers,
-    "body": `json=%7b%22from%22%3a%22temp%22%2c%22to%22%3a%7b%22swap%22%3a[${stickerIds}]%7d%7d&locale=en`,
-    "method": "POST"
+    body: {
+      json: {
+        from: "temp",
+        to: {
+          swap: JSON.stringify(stickerIds)
+        }
+      },
+      locale: "en"
+    },
+    method: "POST"
   })
 
-  const response = request.json()
-
-  return response
+  return request.json()
 }
 
 let config = {}
@@ -148,7 +169,7 @@ const init = async () => {
   console.log(config.stickers.length)
 
   initData = await getInitData()
-  if(process.env.SWAP_REPEATED_STICKERS === 'true') {
+  if(SHOULD_SWAP_REPEATED_STICKERS) {
     const swappableStickers = initData[1].stacks.temp.filter(stickerId => {
       const repeatedSticker = isRepeated(stickerId);
       console.log(`Is sticker ${stickerId} repeated?: ${repeatedSticker}`)
@@ -205,14 +226,16 @@ const swapCronScheduler = () => {
 
     const openSwaps = pollResponse.slice(0,-1)
 
-    openSwaps.forEach(swap => {
-      executeSwap(swap.id).then(response => {
+    const swappedStickers = await openSwaps.map(async swap => {
+      await executeSwap(swap.id).then(response => {
         console.log(`Asked for swap execution on id: ${swap.id}, response: ${response}`)
       })
+
+      return swap.id
     })
 
-    if(process.env.SWAP_REPEATED_STICKERS === 'true') {
-      const retradeableStickerIds = openSwaps.filter(swap => {
+    if(SHOULD_SWAP_REPEATED_STICKERS) {
+      const retradeableStickerIds = swappedStickers.filter(swap => {
         const stickerId = swap.received.id
         const repeatedSticker = isRepeated(stickerId)
         console.log(`Is sticker ${stickerId} repeated?: ${repeatedSticker}`)
