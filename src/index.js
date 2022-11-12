@@ -129,7 +129,7 @@ const executeSwap = async (swapId) => {
 const moveStickers = async (stickerIds) => {
   const request = await fetch("https://paninistickeralbum.fifa.com/api/move_stickers.json", {
     headers,
-    "body": `json=%7b%22from%22%3a%22temp%22%2c%22to%22%3a%7b%22swap%22%3a${stickerIds}%7d%7d&locale=en`,
+    "body": `json=%7b%22from%22%3a%22temp%22%2c%22to%22%3a%7b%22swap%22%3a[${stickerIds}]%7d%7d&locale=en`,
     "method": "POST"
   })
 
@@ -139,20 +139,24 @@ const moveStickers = async (stickerIds) => {
 }
 
 let config = {}
+let initData = {}
+
+const isRepeated = (id) => initData[1].stacks.album.some(([stickerId]) => stickerId === id)
 
 const init = async () => {
   config = await getConfigData()
   console.log(config.stickers.length)
 
-  const initData = await getInitData()
-  const swappableStickers = initData[1].stacks.temp.filter(stickerId => {
+  initData = await getInitData()
+  if(process.env.SWAP_REPEATED_STICKERS === 'true') {
+    const swappableStickers = initData[1].stacks.temp.filter(stickerId => {
+      const repeatedSticker = isRepeated(stickerId);
+      console.log(`Is sticker ${stickerId} repeated?: ${repeatedSticker}`)
+      return repeatedSticker
+    })
+    await moveStickers(swappableStickers)
+  }
 
-    const stickerData = config.stickers.find(sticker => sticker.id === stickerId)
-    console.log(`Is this card golden?: ${stickerData.info.golden}`)
-    return !stickerData.info.golden
-  })
-
-  moveStickers(swappableStickers)
 
   const dailyPacksStatus = await getDailyPacksStatus()
 
@@ -201,16 +205,21 @@ const swapCronScheduler = () => {
 
     const openSwaps = pollResponse.slice(0,-1)
 
-    const retradeableStickers = openSwaps.filter(swap => {
+    openSwaps.forEach(swap => {
       executeSwap(swap.id).then(response => {
         console.log(`Asked for swap execution on id: ${swap.id}, response: ${response}`)
-        const swappedSticker = config.stickers.find(sticker => sticker.id === swap.received.id)
-        console.log(`Is this card golden?: ${swappedSticker.info.golden}`)
-        return !swappedSticker.info.golden
       })
     })
 
-    moveStickers(retradeableStickers)
+    if(process.env.SWAP_REPEATED_STICKERS === 'true') {
+      const retradeableStickerIds = openSwaps.filter(swap => {
+        const stickerId = swap.received.id
+        const repeatedSticker = isRepeated(stickerId)
+        console.log(`Is sticker ${stickerId} repeated?: ${repeatedSticker}`)
+        return repeatedSticker
+      })
+      moveStickers(retradeableStickerIds)
+    }
   })
 }
 
