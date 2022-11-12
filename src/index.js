@@ -19,6 +19,29 @@ const headers = {
   "Referrer-Policy": "same-origin"
 }
 
+const getConfigData = async () => {
+  const manifestRequest = await fetch("https://paninistickeralbum.fifa.com/manifest_update.json")
+  const manifest = await manifestRequest.json()
+
+  const configUrl = manifest["config/config.json"]
+  const configRequest = await fetch(`https://paninistickeralbum.fifa.com/assets/${configUrl}`)
+  const config = await configRequest.json()
+
+  return config
+}
+
+const getInitData = async () => {
+  const request = await fetch("https://paninistickeralbum.fifa.com/api/init.json", {
+    headers,
+    "body": "json=%7b%7d&locale=en",
+    "method": "POST"
+  })
+
+  const response = request.json()
+
+  return response
+}
+
 const getDailyPacksStatus = async () => {
   const request = await fetch("https://paninistickeralbum.fifa.com/api/daily_packs_status.json", {
     headers,
@@ -103,7 +126,33 @@ const executeSwap = async (swapId) => {
   return response
 }
 
+const moveStickers = async (stickerIds) => {
+  const request = await fetch("https://paninistickeralbum.fifa.com/api/move_stickers.json", {
+    headers,
+    "body": `json=%7b%22from%22%3a%22temp%22%2c%22to%22%3a%7b%22swap%22%3a${stickerIds}%7d%7d&locale=en`,
+    "method": "POST"
+  })
+
+  const response = request.json()
+
+  return response
+}
+
+let config = {}
+
 const init = async () => {
+  config = await getConfigData()
+  console.log(config.stickers.length)
+
+  const initData = await getInitData()
+  const swappableStickers = initData[1].stacks.temp.filter(stickerId => {
+
+    const stickerData = config.stickers.find(sticker => sticker.id === stickerId)
+    console.log(`Is this card golden?: ${stickerData.info.golden}`)
+    return !stickerData.info.golden
+  })
+
+  moveStickers(swappableStickers)
 
   const dailyPacksStatus = await getDailyPacksStatus()
 
@@ -152,11 +201,16 @@ const swapCronScheduler = () => {
 
     const openSwaps = pollResponse.slice(0,-1)
 
-    openSwaps.forEach(swap => {
+    const retradeableStickers = openSwaps.filter(swap => {
       executeSwap(swap.id).then(response => {
-        console.log('Asked for swap execution on id: ', swap.id, ', response: ', response)
+        console.log(`Asked for swap execution on id: ${swap.id}, response: ${response}`)
+        const swappedSticker = config.stickers.find(sticker => sticker.id === swap.received.id)
+        console.log(`Is this card golden?: ${swappedSticker.info.golden}`)
+        return !swappedSticker.info.golden
       })
     })
+
+    moveStickers(retradeableStickers)
   })
 }
 

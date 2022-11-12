@@ -1,0 +1,10 @@
+version: "3"
+
+services:
+  panini:
+    container_name: panini
+    image: node:18-alpine
+    restart: unless-stopped
+    volumes:
+      - ${DOCKER_PATH}/:/src
+    entrypoint: sh -c "cd src && npm install && npm start"
