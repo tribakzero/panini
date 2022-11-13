@@ -18,7 +18,6 @@ const getInitialData = async () => {
   const initialData = await getInitData()
   store.data = initialData[1]
   store.user = initialData[4].user_info
-  console.log(store.user)
   console.log(`
   Loaded data for ${store.user.label}
   Album completion: ${store.user.album_completion_perc}% (${store.user.album_collected_stickers}/${store.user.album_total_stickers})
