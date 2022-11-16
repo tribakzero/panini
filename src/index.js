@@ -30,10 +30,11 @@ const init = async () => {
   if(SHOULD_SWAP_REPEATED_STICKERS) {
     const swappableStickers = store.data.stacks.temp.filter(stickerId => {
       const repeatedSticker = isRepeated(stickerId);
-      console.log(`Is sticker ${stickerId} repeated?: ${repeatedSticker}`)
       return repeatedSticker
     })
-    await moveStickers(swappableStickers)
+    if(swappableStickers.length) {
+      await moveStickers(swappableStickers)
+    }
   }
   const dailyPacksStatus = await getDailyPacksStatus()
   const now = new Date()
@@ -68,20 +69,25 @@ const swapCronScheduler = () => {
   nodeCron.schedule('*/5 * * * *', async () => {
     const pollResponse = await pollSwaps()
     const openSwaps = pollResponse.slice(0,-1)
-    const swappedStickers = await openSwaps.map(async swap => {
-      const response = await executeSwap(swap.id)
-      console.log(`Asked for swap execution on id: ${swap.id}, response: ${JSON.stringify(response)}`)
-      return swap.id
-    })
+    if(openSwaps.length === 0) return;
+    const swappedStickers = await Promise.all(
+      openSwaps.map(async swap => {
+        const response = await executeSwap(swap.id)
+        console.log(`Asked for swap execution on id: ${swap.id}, response: ${JSON.stringify(response)}`)
+        return swap
+      })
+    );
 
     if(SHOULD_SWAP_REPEATED_STICKERS) {
-      const retradeableStickerIds = swappedStickers.filter(swap => {
-        const stickerId = swap.received.id
-        const repeatedSticker = isRepeated(stickerId)
-        console.log(`Is sticker ${stickerId} repeated?: ${repeatedSticker}`)
-        return repeatedSticker
-      })
-      moveStickers(retradeableStickerIds)
+      const retradeableStickerIds = swappedStickers.reduce((accumulator, swap) => {
+        const repeatedStickers = []
+        swap.received.forEach(stickerId => isRepeated(stickerId) && repeatedStickers.push(stickerId))
+        return [...accumulator, ...repeatedStickers]
+      }, [])
+
+      if(retradeableStickerIds.length) {
+        await moveStickers(retradeableStickerIds)
+      }
     }
   })
 }

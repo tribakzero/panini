@@ -57,7 +57,7 @@ export const getDailyPacks = async () => {
 }
 
 export const getDailyPaniniScanPacks = async () => {
-  const request = await fetch("https://paninistickeralbum.fifa.com/api/receive_daily_packs.json", {
+  const request = await fetch("https://paninistickeralbum.fifa.com/api/scan_object.json", {
     headers,
     body: "json=%7b%22object_uid%22%3a%22panini_covers-hard-FIL-LATAM%22%2c%22context%22%3a%22panini_covers%22%7d&locale=en",
     method: "POST"
@@ -67,7 +67,7 @@ export const getDailyPaniniScanPacks = async () => {
 }
 
 export const getDailyCokeScanPacks = async () => {
-  const request = await fetch("https://paninistickeralbum.fifa.com/api/receive_daily_packs.json", {
+  const request = await fetch("https://paninistickeralbum.fifa.com/api/scan_object.json", {
     headers,
     body: "json=%7b%22object_uid%22%3a%22coke-500ml-pet-promo%22%2c%22context%22%3a%22coke_products%22%7d&locale=en",
     method: "POST"
