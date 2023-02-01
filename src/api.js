@@ -115,3 +115,13 @@ export const moveStickers = async (stickerIds) => {
 
   return request.json()
 }
+
+export const createSniperSwap = async (stickerIds = []) => {
+  const request = await fetch("https://paninistickeralbum.fifa.com/api/update_swap_request.json", {
+    headers,
+    "body": `json=%7b%22id%22%3anull%2c%22only_team%22%3afalse%2c%22offer%22%3a%7b%22stickers%22%3a%5b%5d%2c%22groups%22%3a%5b%5d%2c%22full_stack%22%3atrue%7d%2c%22demand%22%3a%7b%22stickers%22%3a${JSON.stringify(stickerIds)}%2c%22groups%22%3a%5b%5d%2c%22allow_duplicates%22%3atrue%7d%7d&locale=en`,
+    "method": "POST",
+  })
+
+  return request.json()
+}

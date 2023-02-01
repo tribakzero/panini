@@ -1,6 +1,7 @@
 import nodeCron from 'node-cron'
-import {SHOULD_SWAP_REPEATED_STICKERS} from './constants.js'
+import {SHOULD_SWAP_REPEATED_STICKERS, SNIPER_SWAP_STICKER_IDS} from './constants.js'
 import {
+  createSniperSwap,
   executeSwap,
   getConfigData, getDailyCokeScanPacks,
   getDailyPacks,
@@ -25,6 +26,13 @@ const getInitialData = async () => {
   `)
 }
 
+const sniperSwap = async () => {
+  if(SNIPER_SWAP_STICKER_IDS.length) {
+    const sniperSwapResponse = await createSniperSwap(SNIPER_SWAP_STICKER_IDS)
+    console.log(`Tried creating sniper swap, response: ${JSON.stringify(sniperSwapResponse)}`)
+  }
+}
+
 const init = async () => {
   await getInitialData()
   if(SHOULD_SWAP_REPEATED_STICKERS) {
@@ -42,6 +50,12 @@ const init = async () => {
     console.log('Please open your available packs before trying again.')
     return 0
   }
+
+  // Could be improved by checking for the current swap length before making requests.
+  await sniperSwap()
+  await sniperSwap()
+  await sniperSwap()
+
   const offset = dailyPacksStatus[0].new_packs_in_sec
   const offsetDate = new Date(now.getTime() + offset * 1000)
   const cronDate = new Date(offsetDate.setMinutes(offsetDate.getMinutes() + 1, 0, 0))
@@ -62,6 +76,11 @@ const dailyCronScheduler = (cronString) => {
       openPackIntent = await openPack();
       console.log(openPackIntent)
     } while (!openPackIntent[0].wait);
+
+    // Could be improved by checking for the current swap length before making requests.
+    await sniperSwap()
+    await sniperSwap()
+    await sniperSwap()
   })
 }
 
@@ -89,6 +108,8 @@ const swapCronScheduler = () => {
         await moveStickers(retradeableStickerIds)
       }
     }
+
+    await sniperSwap()
   })
 }
 
